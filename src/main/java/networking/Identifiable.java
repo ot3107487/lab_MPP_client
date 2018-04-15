@@ -1,21 +1,16 @@
 package networking;
 
 import java.io.Serializable;
+import java.net.Socket;
 
 public class Identifiable implements Serializable {
     private String credentials;
-    private int clientPort;
 
-    public Identifiable(String credentials, int clientPort) {
+    public Identifiable(String credentials) {
         this.credentials = credentials;
-        this.clientPort = clientPort;
     }
 
     public String getCredentials() {
         return credentials;
-    }
-
-    public int getClientPort() {
-        return clientPort;
     }
 }

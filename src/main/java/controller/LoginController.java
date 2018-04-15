@@ -54,11 +54,8 @@ public class LoginController {
 
     @FXML
     public void initialize() throws IOException {
-        FXMLLoader loader = new FXMLLoader();
-        String resource = "/views/mainAppView.fxml";
-        loader.setLocation(getClass().getResource(resource));
-        this.pane = (AnchorPane) loader.load();
-        this.ctr = (MainAppController) loader.getController();
+
+        //this.ctr = (MainAppController) loader.getController();
     }
 
     private void goToMainAppView() {
@@ -68,6 +65,11 @@ public class LoginController {
             LocationService locationService = new LocationService();
             TicketService ticketService = new TicketService();
 
+            FXMLLoader loader = new FXMLLoader();
+            String resource = "/views/mainAppView.fxml";
+            loader.setLocation(getClass().getResource(resource));
+            this.pane = (AnchorPane) loader.load();
+            this.ctr = (MainAppController) loader.getController();
 
             this.ctr.setArtistService(artistService);
             this.ctr.setConcertService(concertService);

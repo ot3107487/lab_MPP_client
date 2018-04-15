@@ -19,34 +19,37 @@ public class LoginService {
     }
 
     public boolean login(String userName, String password) {
-        try(Socket client=new Socket(ConnectionProperties.SERVER_HOST,ConnectionProperties.SERVER_PORT)) {
-            System.out.println("Connection obtained.  ");
+        Socket client = ConnectionProperties.getSocketConncetion();
+        System.out.println(client);
+        //opening streams  - mandatory to open first the output and flush, and then the input
+        try {
+            ConnectionProperties.connectionInUse=true;
+            ObjectOutputStream out = ConnectionProperties.getOutputStream(client);
+            ObjectInputStream in = ConnectionProperties.getInputStream(client);
+            out.flush();
+            String credentials = userName + " " + password;
+            Identifiable identifiable = new Identifiable(credentials);
+            Request newRequest = new Request(identifiable, RequestType.LOGIN);
+            System.out.println("Sending object ..." + newRequest);
 
-            //opening streams  - mandatory to open first the output and flush, and then the input
-            try(ObjectOutputStream out=new ObjectOutputStream(client.getOutputStream());
-                ObjectInputStream in=new ObjectInputStream(client.getInputStream())) {
-                out.flush();
-                String credentials=userName+" "+password;
-                Identifiable identifiable=new Identifiable(credentials,client.getLocalPort());
-                Request newRequest=new Request(identifiable, RequestType.LOGIN);
-                System.out.println("Sending object ..." + newRequest);
+            out.writeObject(newRequest);
+            out.flush();
 
-                out.writeObject(newRequest);
-                out.flush();
-
-                System.out.println("Waiting for response...");
-                Object response = null;
-                try {
-                    response = in.readObject();
-                } catch (ClassNotFoundException e) {
-                    System.out.println("Error deserializing " + e);
-                }
-                return (Boolean)response;
-
+            System.out.println("Waiting for response...");
+            Object response = null;
+            try {
+                response = in.readObject();
+            } catch (ClassNotFoundException e) {
+                System.out.println("Error deserializing " + e);
             }
+            ConnectionProperties.connectionInUse=false;
+            return (Boolean) response;
+
+
         } catch (IOException e) {
             System.out.println(e.getMessage());
         }
+        ConnectionProperties.connectionInUse=false;
         return false;
     }
 }

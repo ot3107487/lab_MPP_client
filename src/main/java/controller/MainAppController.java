@@ -66,6 +66,8 @@ public class MainAppController implements IObserver,Initializable {
     Stage loginStage;
     Stage thisStage;
 
+    ProxyListener proxy=new ProxyListener(this);
+
     public void setThisStage(Stage thisStage) {
         this.thisStage = thisStage;
     }
@@ -177,7 +179,7 @@ public class MainAppController implements IObserver,Initializable {
                 ticketService.save(ticket);
                 concert.setSoldTickets(locuriCumparate + nrLocuri);
                 concertService.put(concert);
-                concertUpdated(concert);
+                //concertUpdated(concert);
                 System.out.println("Ticket cumparat cu succes");
                 System.out.println(ticket);
             }
@@ -230,5 +232,6 @@ public class MainAppController implements IObserver,Initializable {
             }
         });
         labelNrBilete.setVisible(false);
+        proxy.listen();
     }
 }
