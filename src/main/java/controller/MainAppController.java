@@ -12,7 +12,6 @@ import model.Artist;
 import model.Concert;
 import model.Location;
 import model.Ticket;
-import networking.IServer;
 
 import java.net.URL;
 import java.rmi.RemoteException;
@@ -63,21 +62,21 @@ public class MainAppController implements Initializable {
     Stage thisStage;
 
     RMIController controller;
-    IServer server;
 
-    public void setServer(IServer server) {
-        this.server = server;
+    public void setController(RMIController controller) {
         try {
-
-            modelArtists = FXCollections.observableArrayList(server.getArtists());
+            this.controller=controller;
+            modelArtists = FXCollections.observableArrayList(controller.getArtists());
             tableArtists.setItems(modelArtists);
 
-            modelConcerts = FXCollections.observableArrayList(server.getConcerts());
+            modelConcerts = FXCollections.observableArrayList(controller.getConcerts());
             tableConcerts.setItems(modelConcerts);
 
 
-            modelLocations = FXCollections.observableArrayList(server.getLocation());
+            modelLocations = FXCollections.observableArrayList(controller.getLocation());
             tableLocations.setItems(modelLocations);
+
+            controller.setConcertModel(modelConcerts);
         } catch (RemoteException e) {
             e.printStackTrace();
         }
@@ -102,10 +101,10 @@ public class MainAppController implements Initializable {
         Artist artist = (Artist) tableArtists.getSelectionModel().getSelectedItem();
         //if (checkFilter.isSelected()) {
         try {
-            modelConcerts = FXCollections.observableArrayList(server.getConcertsByArtistAndDate(artist, filterDate.getText()));
+            modelConcerts = FXCollections.observableArrayList(controller.getConcertsByArtistAndDate(artist, filterDate.getText()));
 
             //} else
-            modelConcerts = FXCollections.observableArrayList(server.getConcertsByArtist(artist));
+            modelConcerts = FXCollections.observableArrayList(controller.getConcertsByArtist(artist));
             tableConcerts.setItems(modelConcerts);
         } catch (RemoteException e) {
             e.printStackTrace();
@@ -116,7 +115,7 @@ public class MainAppController implements Initializable {
         String date = filterDate.getText();
         ArrayList<Concert> concertInThatDate = null;
 //        try {
-//            concertInThatDate = server.getConcertsByDate(date);
+//            concertInThatDate = controller.getConcertsByDate(date);
 //
 //            Set<Artist> artists = new HashSet<>();
 //
@@ -146,9 +145,9 @@ public class MainAppController implements Initializable {
                     labelNrBilete.setVisible(true);
                 else {
                     Ticket ticket = new Ticket(0, concert.getId(), nrLocuri, buyer);
-                    server.saveTicket(ticket);
+                    controller.saveTicket(ticket);
                     concert.setSoldTickets(locuriCumparate + nrLocuri);
-                    server.updateConcert(concert);
+                    controller.updateConcert(concert);
                     //concertUpdated(concert);
                     System.out.println("Ticket cumparat cu succes");
                     System.out.println(ticket);
@@ -163,7 +162,7 @@ public class MainAppController implements Initializable {
     public void logout(MouseEvent event) {
         thisStage.close();
         try {
-            server.logout(controller);
+            controller.logout(controller);
         } catch (RemoteException e) {
             e.printStackTrace();
         }
@@ -200,11 +199,5 @@ public class MainAppController implements Initializable {
             }
         });
         labelNrBilete.setVisible(false);
-    }
-
-
-    public void setController(RMIController controller) {
-        this.controller = controller;
-        this.controller.setConcertModel(this.modelConcerts);
     }
 }

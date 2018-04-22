@@ -1,4 +1,5 @@
 import controller.LoginController;
+import controller.RMIController;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -25,7 +26,7 @@ public class Main extends Application {
             System.err.println("Cannot find chatclient.properties " + e);
             return;
         }
-        //System.setProperty("java.security.policy", "file:client.policy");
+        System.setProperty("java.security.policy", "file:client.policy");
         if (System.getSecurityManager() == null) {
             System.setSecurityManager(new SecurityManager());
         }
@@ -36,14 +37,14 @@ public class Main extends Application {
             Registry registry = LocateRegistry.getRegistry(serverIP);
             IServer server = (IServer) registry.lookup(name);
             System.out.println("Obtained a reference to remote chat server");
-
+            RMIController rmiController=new RMIController(server);
 
             FXMLLoader loader = new FXMLLoader();
             String resource = "/views/loginView.fxml";
             loader.setLocation(getClass().getResource(resource));
             AnchorPane pane = (AnchorPane) loader.load();
             LoginController controller = loader.getController();
-            controller.setServer(server);
+            controller.setRmiController(rmiController);
             Stage stage = new Stage();
             stage.setTitle("Login");
             stage.setScene(new Scene(pane));

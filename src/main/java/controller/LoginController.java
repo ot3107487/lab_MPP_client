@@ -22,13 +22,6 @@ public class LoginController {
     @FXML
     Label labelCredentials;
 
-    private IServer server;
-
-    public void setServer(IServer server) {
-        this.server = server;
-        this.client = new RMIController(server);
-    }
-
     private Stage loginStage;
 
     public void setLoginStage(Stage loginStage) {
@@ -38,13 +31,16 @@ public class LoginController {
 
     private AnchorPane pane;
 
-    RMIController client;
+    RMIController rmiController;
 
+    public void setRmiController(RMIController rmiController) {
+        this.rmiController = rmiController;
+    }
 
     public void login(MouseEvent event) throws RemoteException {
         String userName = txtUser.getText();
         String password = txtPassword.getText();
-        if (server.login(userName, password, client)) {
+        if (rmiController.login(userName, password)) {
             goToMainAppView();
             labelCredentials.setVisible(false);
         } else
@@ -65,8 +61,7 @@ public class LoginController {
             loader.setLocation(getClass().getResource(resource));
             this.pane = (AnchorPane) loader.load();
             MainAppController ctr = (MainAppController) loader.getController();
-            ctr.setServer(server);
-            ctr.setController(this.client);
+            ctr.setController(this.rmiController);
 
             ctr.setLoginStage(this.loginStage);
             Stage stage = new Stage();
