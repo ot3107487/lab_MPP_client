@@ -2,7 +2,7 @@ package model;
 
 import java.io.Serializable;
 
-public class Artist implements HasId<Integer>,Serializable {
+public class Artist implements HasId<Integer>, Serializable {
     private int id;
     private String lastName;
     private String firstName;

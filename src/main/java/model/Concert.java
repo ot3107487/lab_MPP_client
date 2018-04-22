@@ -2,7 +2,7 @@ package model;
 
 import java.io.Serializable;
 
-public class Concert implements HasId<Integer>,Serializable{
+public class Concert implements HasId<Integer>, Serializable {
     private int id;
     private int idArtist;
     private String date;

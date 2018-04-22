@@ -2,7 +2,7 @@ package model;
 
 import java.io.Serializable;
 
-public class Ticket implements HasId<Integer>,Serializable {
+public class Ticket implements HasId<Integer>, Serializable {
     private int id;
     private int idConcert;
     private int placesBought;
@@ -49,6 +49,6 @@ public class Ticket implements HasId<Integer>,Serializable {
 
     @Override
     public String toString() {
-        return "Nume si prenume cumparator:"+buyer+"/n Locuri cumparate:"+placesBought;
+        return "Nume si prenume cumparator:" + buyer + "/n Locuri cumparate:" + placesBought;
     }
 }

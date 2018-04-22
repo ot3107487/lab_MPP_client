@@ -2,7 +2,7 @@ package model;
 
 import java.io.Serializable;
 
-public class Location implements HasId<Integer>,Serializable {
+public class Location implements HasId<Integer>, Serializable {
     private int id;
     private String name;
     private int places;

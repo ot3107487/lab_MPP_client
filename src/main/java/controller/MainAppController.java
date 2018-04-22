@@ -12,19 +12,12 @@ import model.Artist;
 import model.Concert;
 import model.Location;
 import model.Ticket;
-import networking.IObserver;
 import networking.IServer;
-import networking.Response;
-import service.*;
 
 import java.net.URL;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.ResourceBundle;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 public class MainAppController implements Initializable {
     @FXML
@@ -70,7 +63,6 @@ public class MainAppController implements Initializable {
     Stage thisStage;
 
     RMIController controller;
-    ArtistService artistService;
     IServer server;
 
     public void setServer(IServer server) {
@@ -120,23 +112,23 @@ public class MainAppController implements Initializable {
         }
     }
 
-    public void getArtistByDate(MouseEvent event) {
+    public void getArtistByDate(MouseEvent event) { // TO DO
         String date = filterDate.getText();
         ArrayList<Concert> concertInThatDate = null;
-        try {
-            concertInThatDate = server.getConcertsByDate(date);
-
-            Set<Artist> artists = new HashSet<>();
-
-            for (Concert concert : concertInThatDate)
-                artists.add(artistService.findById(concert.getIdArtist()));
-            ArrayList<Artist> finalArtists = new ArrayList<>();
-            finalArtists.addAll(artists);
-            modelArtists = FXCollections.observableArrayList(finalArtists);
-            tableArtists.setItems(modelArtists);
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            concertInThatDate = server.getConcertsByDate(date);
+//
+//            Set<Artist> artists = new HashSet<>();
+//
+//            for (Concert concert : concertInThatDate)
+//                artists.add(artistService.findById(concert.getIdArtist()));
+//            ArrayList<Artist> finalArtists = new ArrayList<>();
+//            finalArtists.addAll(artists);
+//            modelArtists = FXCollections.observableArrayList(finalArtists);
+//            tableArtists.setItems(modelArtists);
+//        } catch (RemoteException e) {
+//            e.printStackTrace();
+//        }
 
 
     }
@@ -178,15 +170,6 @@ public class MainAppController implements Initializable {
         loginStage.show();
     }
 
-    public void concertUpdated(Concert concert) {
-        for (Concert c : modelConcerts)
-            if (c.getId() == concert.getId()) {
-                modelConcerts.remove(c);
-                break;
-            }
-        modelConcerts.add(concert);
-
-    }
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -219,12 +202,9 @@ public class MainAppController implements Initializable {
         labelNrBilete.setVisible(false);
     }
 
-    public void setArtistService(ArtistService artistService) {
-        this.artistService = artistService;
-    }
 
     public void setController(RMIController controller) {
         this.controller = controller;
-        this.controller.setConcertModel(new Response(this.modelConcerts));
+        this.controller.setConcertModel(this.modelConcerts);
     }
 }

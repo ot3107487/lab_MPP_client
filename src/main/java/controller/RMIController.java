@@ -4,7 +4,6 @@ import javafx.collections.FXCollections;
 import model.Concert;
 import networking.IObserver;
 import networking.IServer;
-import networking.Response;
 
 import java.io.Serializable;
 import java.rmi.RemoteException;
@@ -22,14 +21,14 @@ public class RMIController implements IObserver, Serializable {
         this.concertModel = FXCollections.observableArrayList(new ArrayList<Concert>());
         this.server = server;
         try {
-            UnicastRemoteObject.exportObject(this,0);
+            UnicastRemoteObject.exportObject(this, 0);
         } catch (RemoteException e) {
-            System.out.println("Error exporting object "+e);
+            System.out.println("Error exporting object " + e);
         }
     }
 
-    public void setConcertModel(Response concertModel) {
-        this.concertModel = (List<Concert>) concertModel.getData();
+    public void setConcertModel(List<Concert> concertModel) {
+        this.concertModel = concertModel;
     }
 
     public void concertUpdated(Concert concert) throws RemoteException {
