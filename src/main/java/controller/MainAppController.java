@@ -13,9 +13,12 @@ import model.Concert;
 import model.Location;
 import model.Ticket;
 import networking.IObserver;
+import networking.IServer;
+import networking.Response;
 import service.*;
 
 import java.net.URL;
+import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.ResourceBundle;
@@ -23,7 +26,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-public class MainAppController implements IObserver,Initializable {
+public class MainAppController implements Initializable {
     @FXML
     TableView tableArtists;
     @FXML
@@ -66,133 +69,115 @@ public class MainAppController implements IObserver,Initializable {
     Stage loginStage;
     Stage thisStage;
 
-    ProxyListener proxy=new ProxyListener(this);
+    RMIController controller;
+    ArtistService artistService;
+    IServer server;
+
+    public void setServer(IServer server) {
+        this.server = server;
+        try {
+
+            modelArtists = FXCollections.observableArrayList(server.getArtists());
+            tableArtists.setItems(modelArtists);
+
+            modelConcerts = FXCollections.observableArrayList(server.getConcerts());
+            tableConcerts.setItems(modelConcerts);
+
+
+            modelLocations = FXCollections.observableArrayList(server.getLocation());
+            tableLocations.setItems(modelLocations);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+    }
 
     public void setThisStage(Stage thisStage) {
         this.thisStage = thisStage;
     }
 
-    ArtistService artistService;
-    ConcertService concertService;
-    LocationService locationService;
-    TicketService ticketService;
 
     private ObservableList<Artist> modelArtists;
     private ObservableList<Concert> modelConcerts;
     private ObservableList<Location> modelLocations;
-
-    public void setArtistService(ArtistService artistService) {
-        this.artistService = artistService;
-        ArrayList<Artist> artists = artistService.getAll();
-        modelArtists = FXCollections.observableArrayList(artists);
-        tableArtists.setItems(modelArtists);
-    }
-
-    public void setConcertService(ConcertService concertService) {
-        this.concertService = concertService;
-        modelConcerts = FXCollections.observableArrayList(concertService.getAll());
-        tableConcerts.setItems(modelConcerts);
-    }
-
-    public void setLocationService(LocationService locationService) {
-        this.locationService = locationService;
-        ArrayList<Location> locations = locationService.getAll();
-        modelLocations = FXCollections.observableArrayList(locations);
-        tableLocations.setItems(modelLocations);
-    }
-
-    public void setTicketService(TicketService ticketService) {
-        this.ticketService = ticketService;
-    }
 
 
     public void setLoginStage(Stage loginStage) {
         this.loginStage = loginStage;
     }
 
-//    @FXML
-//    public void initialize() {
-//        //artisti
-//        columnArtistFirstName.setCellValueFactory(new PropertyValueFactory<Artist, String>("firstName"));
-//        columnArtistLastName.setCellValueFactory(new PropertyValueFactory<Artist, String>("lastName"));
-//        //concerte
-//        columnConcertDate.setCellValueFactory(new PropertyValueFactory<Concert, String>("date"));
-//        columnConcertLocation.setCellValueFactory(new PropertyValueFactory<Concert, Integer>("idLocation"));
-//        columnConcertNumberOfTickets.setCellValueFactory(new PropertyValueFactory<Concert, Integer>("numberOfTickets"));
-//        columnConcertSoldTickets.setCellValueFactory(new PropertyValueFactory<Concert, Integer>("soldTickets"));
-//        //legenda locatii
-//        columnLocationId.setCellValueFactory(new PropertyValueFactory<Location, Integer>("id"));
-//        columnLocationName.setCellValueFactory(new PropertyValueFactory<Location, String>("name"));
-//
-//
-//        tableConcerts.setRowFactory(tv -> new TableRow<Concert>() {
-//            @Override
-//            public void updateItem(Concert item, boolean empty) {
-//                super.updateItem(item, empty);
-//                if (item == null) {
-//                    setStyle("");
-//                } else if (item.getNumberOfTickets() == item.getSoldTickets()) {
-//                    setStyle("-fx-background-color: tomato;");
-//                } else {
-//                    setStyle("");
-//                }
-//            }
-//        });
-//        labelNrBilete.setVisible(false);
-//    }
 
     public void getConcertsOfArtist(MouseEvent event) {
         Artist artist = (Artist) tableArtists.getSelectionModel().getSelectedItem();
         //if (checkFilter.isSelected()) {
-            modelConcerts = FXCollections.observableArrayList(concertService.getConcertsByArtistAndDate(artist, filterDate.getText()));
-        //} else
-            modelConcerts = FXCollections.observableArrayList(concertService.getConcertsByArtist(artist));
-        tableConcerts.setItems(modelConcerts);
+        try {
+            modelConcerts = FXCollections.observableArrayList(server.getConcertsByArtistAndDate(artist, filterDate.getText()));
+
+            //} else
+            modelConcerts = FXCollections.observableArrayList(server.getConcertsByArtist(artist));
+            tableConcerts.setItems(modelConcerts);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
     }
 
     public void getArtistByDate(MouseEvent event) {
         String date = filterDate.getText();
-        ArrayList<Concert> concertInThatDate = concertService.getConcertsByDate(date);
-        Set<Artist> artists = new HashSet<>();
-        for (Concert concert : concertInThatDate)
-            artists.add(artistService.findById(concert.getIdArtist()));
-        ArrayList<Artist> finalArtists = new ArrayList<>();
-        finalArtists.addAll(artists);
-        modelArtists = FXCollections.observableArrayList(finalArtists);
-        tableArtists.setItems(modelArtists);
+        ArrayList<Concert> concertInThatDate = null;
+        try {
+            concertInThatDate = server.getConcertsByDate(date);
+
+            Set<Artist> artists = new HashSet<>();
+
+            for (Concert concert : concertInThatDate)
+                artists.add(artistService.findById(concert.getIdArtist()));
+            ArrayList<Artist> finalArtists = new ArrayList<>();
+            finalArtists.addAll(artists);
+            modelArtists = FXCollections.observableArrayList(finalArtists);
+            tableArtists.setItems(modelArtists);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
 
 
     }
 
     public void printTicket(MouseEvent event) {
         Concert concert = (Concert) tableConcerts.getSelectionModel().getSelectedItem();
-        if (concert != null) {
-            labelNrBilete.setVisible(false);
-            String buyer = textNume.getText() + ' ' + textPrenume.getText();
-            int nrLocuri = Integer.parseInt(textNrBilete.getText());
-            int locuriInTotal = concert.getNumberOfTickets();
-            int locuriCumparate = concert.getSoldTickets();
-            if (locuriInTotal - locuriCumparate < nrLocuri)
-                labelNrBilete.setVisible(true);
-            else {
-                Ticket ticket = new Ticket(0, concert.getId(), nrLocuri, buyer);
-                ticketService.save(ticket);
-                concert.setSoldTickets(locuriCumparate + nrLocuri);
-                concertService.put(concert);
-                //concertUpdated(concert);
-                System.out.println("Ticket cumparat cu succes");
-                System.out.println(ticket);
+        try {
+            if (concert != null) {
+                labelNrBilete.setVisible(false);
+                String buyer = textNume.getText() + ' ' + textPrenume.getText();
+                int nrLocuri = Integer.parseInt(textNrBilete.getText());
+                int locuriInTotal = concert.getNumberOfTickets();
+                int locuriCumparate = concert.getSoldTickets();
+                if (locuriInTotal - locuriCumparate < nrLocuri)
+                    labelNrBilete.setVisible(true);
+                else {
+                    Ticket ticket = new Ticket(0, concert.getId(), nrLocuri, buyer);
+                    server.saveTicket(ticket);
+                    concert.setSoldTickets(locuriCumparate + nrLocuri);
+                    server.updateConcert(concert);
+                    //concertUpdated(concert);
+                    System.out.println("Ticket cumparat cu succes");
+                    System.out.println(ticket);
+                }
             }
+        } catch (RemoteException e) {
+            e.printStackTrace();
         }
     }
 
 
     public void logout(MouseEvent event) {
         thisStage.close();
+        try {
+            server.logout(controller);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
         loginStage.show();
     }
 
-    @Override
     public void concertUpdated(Concert concert) {
         for (Concert c : modelConcerts)
             if (c.getId() == concert.getId()) {
@@ -232,6 +217,14 @@ public class MainAppController implements IObserver,Initializable {
             }
         });
         labelNrBilete.setVisible(false);
-        proxy.listen();
+    }
+
+    public void setArtistService(ArtistService artistService) {
+        this.artistService = artistService;
+    }
+
+    public void setController(RMIController controller) {
+        this.controller = controller;
+        this.controller.setConcertModel(new Response(this.modelConcerts));
     }
 }
