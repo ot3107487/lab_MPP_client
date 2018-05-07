@@ -9,7 +9,11 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
-import networking.IServer;
+import model.Artist;
+import service.ArtistService;
+import service.ConcertService;
+import service.LoginService;
+import service.Service;
 
 import java.io.IOException;
 import java.rmi.RemoteException;
@@ -28,19 +32,18 @@ public class LoginController {
         this.loginStage = loginStage;
     }
 
+    private LoginService loginService;
+
+    public void setLoginService(LoginService loginService) {
+        this.loginService = loginService;
+    }
 
     private AnchorPane pane;
-
-    RMIController rmiController;
-
-    public void setRmiController(RMIController rmiController) {
-        this.rmiController = rmiController;
-    }
 
     public void login(MouseEvent event) throws RemoteException {
         String userName = txtUser.getText();
         String password = txtPassword.getText();
-        if (rmiController.login(userName, password)) {
+        if (loginService.login(userName, password)) {
             goToMainAppView();
             labelCredentials.setVisible(false);
         } else
@@ -61,8 +64,10 @@ public class LoginController {
             loader.setLocation(getClass().getResource(resource));
             this.pane = (AnchorPane) loader.load();
             MainAppController ctr = (MainAppController) loader.getController();
-            ctr.setController(this.rmiController);
-
+            Service<Artist> artistService=new ArtistService(loginService.getUrlAPI());
+            ConcertService concertService=new ConcertService(loginService.getUrlAPI());
+            ctr.setConcertService(concertService);
+            ctr.setArtistService(artistService);
             ctr.setLoginStage(this.loginStage);
             Stage stage = new Stage();
             ctr.setThisStage(stage);
